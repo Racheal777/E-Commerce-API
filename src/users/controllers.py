@@ -16,6 +16,9 @@ class UserSchema(Schema):
     password = fields.Str(required=True)
     role = fields.Boolean()
 
+user_schema = UserSchema()
+users_schema = UserSchema(many=True)
+
 class LoginSchema(Schema):
 
     email = fields.Email(required=True)
@@ -55,7 +58,7 @@ def signup():
             db.session.add(user)
             db.session.commit()
 
-            return jsonify(user.to_dict()), 201
+            return jsonify(user_schema.dump(user)), 201
 
     except Exception as e:
         return jsonify({'errors': str(e)}), 500

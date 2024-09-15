@@ -1,3 +1,5 @@
+import uuid
+
 import cloudinary
 import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
@@ -19,5 +21,5 @@ cloudinary.config(
 
 # Upload an image
 def upload_file(file):
-    upload_result = cloudinary.uploader.upload(file, public_id="shoes")
+    upload_result = cloudinary.uploader.upload(file, public_id=str(uuid.uuid4()))
     return upload_result.get('secure_url')

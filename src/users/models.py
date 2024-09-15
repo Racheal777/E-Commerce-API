@@ -19,6 +19,8 @@ class User(db.Model):
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    cart_items = db.relationship('Cart', back_populates='user')
+
 
     def to_dict(self):
         return {

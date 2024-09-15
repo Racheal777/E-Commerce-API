@@ -6,9 +6,7 @@ import os
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
 
-from flask_jwt_extended import create_access_token
-from flask_jwt_extended import get_jwt_identity
-from flask_jwt_extended import jwt_required
+
 from flask_jwt_extended import JWTManager
 
 load_dotenv()
@@ -22,7 +20,7 @@ password = os.getenv('PASSWORD')
 port = os.getenv('PORT')
 
 
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+
 
 
 db = SQLAlchemy()
@@ -40,9 +38,11 @@ jwt = JWTManager(app)
 
 from .users.models import User
 from .products.models import Product
+from .carts.models import Cart
 
 from .users.controllers import  *
 from .products.controllers import *
+from .carts.controllers import *
 
 if __name__ == 'main':
     app.run(debug=True)
