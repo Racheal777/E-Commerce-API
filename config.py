@@ -7,11 +7,8 @@ import os
 
 from dotenv import  load_dotenv
 
-
-
 load_dotenv()
 
-# Configuration
 cloudinary.config(
     cloud_name = os.getenv('CLOUD_NAME'),
     api_key = os.getenv('API_KEY'),
@@ -19,7 +16,7 @@ cloudinary.config(
     secure=True
 )
 
-# Upload an image
+
 def upload_file(file):
     upload_result = cloudinary.uploader.upload(file, public_id=str(uuid.uuid4()))
     return upload_result.get('secure_url')

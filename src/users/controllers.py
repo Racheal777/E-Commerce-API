@@ -25,10 +25,6 @@ class LoginSchema(Schema):
     password = fields.Str(required=True)
 
 
-
-
-
-
 @app.route('/users/signup', methods=['POST'])
 def signup():
     try:
@@ -73,9 +69,7 @@ def login():
         except ValidationError as e:
             return jsonify(e.messages),400
 
-
         email = data.get('email')
-
         existing_user = User.query.filter(User.email == email).first()
 
         if not existing_user:
@@ -84,9 +78,7 @@ def login():
                 'status': 404
             }), 404
         else:
-
             password = data.get('password')
-
             is_valid = bcrypt.check_password_hash(existing_user._password, password)
 
             if not is_valid:

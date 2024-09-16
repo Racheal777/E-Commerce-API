@@ -1,27 +1,17 @@
-
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import  load_dotenv
 from flask import Flask
 import os
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
-
-
 from flask_jwt_extended import JWTManager
-
 load_dotenv()
-
-
 
 host = os.getenv('HOSTNAME')
 database = os.getenv('DATABASE')
 user = os.getenv('USERNAME')
 password = os.getenv('PASSWORD')
 port = os.getenv('PORT')
-
-
-
-
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -34,7 +24,6 @@ migrate.init_app(app, db)
 bcrypt.init_app(app)
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 jwt = JWTManager(app)
-
 
 from .users.models import User
 from .products.models import Product

@@ -1,14 +1,47 @@
-from itertools import product
+import uuid
 from uuid import UUID
-
 from flask import request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy.orm import joinedload
-
+from marshmallow import Schema, fields
+from flask_marshmallow import Marshmallow
 from .models import Cart
 from .. import app, db, User
 from ..products.models import Product
-from ..utils import create_response
+from ..utils import create_response, sqlalchemy_obj_to_dict
+ma = Marshmallow(app)
+
+class ProductSchema(Schema):
+    class Meta:
+        model = Product
+        load_instance = True
+
+
+
+class CartSchema(ma.Schema):
+    quantity = fields.Integer(required=True)
+    product_id = fields.UUID(required=True)
+    class Meta:
+        model = Cart
+        include_fk = True
+        load_instance = True
+        # fields = (
+        # 'id', 'name', 'description', 'price', 'product_image', 'stock_quantity')
+    product = fields.Nested(ProductSchema)
+
+
+product_schema = ProductSchema()
+products_schema = ProductSchema(many=True)
+cart_schema = CartSchema()
+carts_schema = CartSchema(many=True)
+
+
+def get_total(price, quantity):
+    total_array = []
+
+    total_price_per_quantity = price * quantity
+    total_array.append(total_price_per_quantity)
+    return round(sum(total_array), 2)
 
 
 @app.route('/carts', methods=['Post'])
@@ -65,9 +98,29 @@ def get_cart():
             return create_response(error='Unauthorized', message="Unauthorized",
                                    status=401)
 
-        carts = Cart.query.options(joinedload(Cart.user)).filter_by(user_id=user.id).order_by(Cart.created_at).all()
+        carts = Cart.query.options(joinedload(Cart.product)).filter_by(user_id=user.id).order_by(Cart.created_at).all()
 
-        return create_response(data=carts, message='cart record retrieved successfully', status=200)
+        result = carts_schema.dump(carts)
+        overall_total = 0
+        for item in result:
+            if not item['product']:
+                product = Product.query.get(uuid.UUID(item['product_id']))
+
+                if product:
+                    item['product'] = sqlalchemy_obj_to_dict(product)
+
+            item_total = get_total(item['product']['price'], item['quantity'])
+            item['total'] = item_total
+            print(item_total)
+            overall_total += item_total
+
+
+        response_data = {
+            'cart_items': result,
+            'overall_total': overall_total
+        }
+
+        return create_response(data=response_data, message='cart record retrieved successfully', status=200)
 
     except Exception as e:
 
