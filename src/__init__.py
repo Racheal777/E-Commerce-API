@@ -28,10 +28,12 @@ jwt = JWTManager(app)
 from .users.models import User
 from .products.models import Product
 from .carts.models import Cart
+from .order.models import Order, OrderItem
 
 from .users.controllers import  *
 from .products.controllers import *
 from .carts.controllers import *
+from .order.controllers import *
 
 if __name__ == 'main':
     app.run(debug=True)

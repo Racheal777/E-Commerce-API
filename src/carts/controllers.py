@@ -4,12 +4,12 @@ from flask import request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy.orm import joinedload
 from marshmallow import Schema, fields
-from flask_marshmallow import Marshmallow
+
 from .models import Cart
 from .. import app, db, User
 from ..products.models import Product
 from ..utils import create_response, sqlalchemy_obj_to_dict
-ma = Marshmallow(app)
+
 
 class ProductSchema(Schema):
     class Meta:
@@ -18,7 +18,7 @@ class ProductSchema(Schema):
 
 
 
-class CartSchema(ma.Schema):
+class CartSchema(Schema):
     quantity = fields.Integer(required=True)
     product_id = fields.UUID(required=True)
     class Meta:

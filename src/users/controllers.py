@@ -3,7 +3,8 @@ from datetime import timedelta
 
 from .models import db, User
 from flask import request, jsonify, make_response
-from .. import  app, bcrypt
+from .. import app, bcrypt
+from ..utils import create_response
 from marshmallow import Schema, fields, ValidationError
 from flask_jwt_extended import create_access_token
 
@@ -54,10 +55,10 @@ def signup():
             db.session.add(user)
             db.session.commit()
 
-            return jsonify(user_schema.dump(user)), 201
+            return create_response(data=user_schema.dump(user), message='User registration successfully', status=201)
 
     except Exception as e:
-        return jsonify({'errors': str(e)}), 500
+        return create_response(error=str(e), message='error', status=500)
 
 
 @app.route('/users/login', methods=['POST'])
@@ -87,15 +88,14 @@ def login():
                     'status': 401
                 }), 401
 
-            expires = timedelta(hours=24)
+            expires = timedelta(hours=72)
             access_token = create_access_token(identity=existing_user.id,expires_delta=expires)
-            return jsonify({
-            'user': existing_user.to_dict(),
-            'access_token': access_token}), 200
+
+            return create_response(data={'user': user_schema.dump(existing_user),
+            'access_token': access_token}, message='User login successfully', status=200)
 
     except Exception as e:
-        return jsonify({'errors': str(e)}), 500
-
+        return create_response(error=str(e), message='error', status=500)
 
 
 

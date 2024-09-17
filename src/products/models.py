@@ -21,6 +21,7 @@ class Product(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     cart_items = db.relationship('Cart', back_populates='product')
+    order_items = db.relationship('OrderItem', back_populates='product')
 
     def __repr__(self):
         return f"<Product {self.name}>"
