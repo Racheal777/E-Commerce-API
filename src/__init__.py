@@ -17,7 +17,7 @@ host = os.getenv('HOSTNAME')
 database = os.getenv('DATABASE')
 user = os.getenv('USERNAME')
 password = os.getenv('PASSWORD')
-port = os.getenv('PORT')
+port = os.getenv('DB_PORT')
 
 db = SQLAlchemy()
 migrate = Migrate()
