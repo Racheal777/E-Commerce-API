@@ -25,8 +25,7 @@ class CartSchema(Schema):
         model = Cart
         include_fk = True
         load_instance = True
-        # fields = (
-        # 'id', 'name', 'description', 'price', 'product_image', 'stock_quantity')
+
     product = fields.Nested(ProductSchema)
 
 

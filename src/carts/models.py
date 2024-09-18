@@ -1,8 +1,5 @@
 
-
 from datetime import datetime
-
-
 from .. import db, bcrypt
 import uuid
 from sqlalchemy.dialects.postgresql import UUID

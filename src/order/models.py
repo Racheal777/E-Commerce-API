@@ -1,7 +1,4 @@
 from datetime import datetime
-from enum import unique
-
-from django.template.defaultfilters import default
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from .. import db

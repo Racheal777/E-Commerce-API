@@ -21,8 +21,6 @@ class OrderItemSchema(Schema):
     quantity = fields.Integer(required=True )
 
 
-
-
 class OrderSchema(Schema):
     id = fields.UUID(dump_only=True)
     order_date = fields.Date(dump_only=True)
@@ -124,19 +122,12 @@ def create_order():
 
             )
             db.session.add(order_item)
-
             product.stock_quantity -= item['quantity']
-
             sub_total += product.price * item['quantity']
-
-
 
         new_order.sub_total = sub_total
 
-
-
         new_order.total_amount_due = sub_total + new_order.delivery_fee
-
         db.session.commit()
 
         response, status = checkout(new_order.id)
@@ -251,6 +242,17 @@ def callback_payment():
     except Exception as e:
         db.session.rollback()
         return jsonify({'status': 'failed', 'message': 'An unexpected error occurred'}), 500
+
+
+
+
+@app.route('/update-order/<order_number>',  methods = ['PATCH'])
+def update_order(order_number):
+    order = Order.query.filter(Order.order_number == order_number).first()
+
+    data = request.get_json()
+
+
 
 
 

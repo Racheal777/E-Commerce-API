@@ -1,41 +1,39 @@
-from crypt import methods
-from itertools import product
 
-from flask import request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from marshmallow import ValidationError, Schema
+
 
 from config import upload_file
 from .models import db, Product
 from flask import request, jsonify, make_response
-from .. import app, bcrypt, User
+from .. import app, bcrypt, User, api
 from ..utils import create_response
 
 
-# class ProductSchema(Schema):
 
 
 @app.route('/image-upload', methods=['POST'])
 def upload_image():
-    try:
-        if 'image' not in request.files:
-            return jsonify({'message': 'No image file provided'}), 400
+        try:
+            if 'image' not in request.files:
+                return jsonify({'message': 'No image file provided'}), 400
 
-        file = request.files['image']
-        if file.filename == '':
-            return jsonify({'message': 'No selected file'}), 400
+            file = request.files['image']
+            if file.filename == '':
+                return jsonify({'message': 'No selected file'}), 400
 
-        if file and allowed_file(file.filename):
-            image_url = upload_file(file)
-            return create_response(data=image_url, message="Success", status=201)
+            if file and allowed_file(file.filename):
+                image_url = upload_file(file)
+                return create_response(data=image_url, message="Success", status=201)
 
-        else:
-            return create_response(error="Invalid file type", message="Invalid file type", status=400)
+            else:
+                return create_response(error="Invalid file type", message="Invalid file type", status=400)
 
-    except Exception as e:
+        except Exception as e:
 
-        app.logger.error(f"Error adding image: {str(e)}")
-        return create_response(error=str(e), message="An error occurred while adding the image", status=500)
+            app.logger.error(f"Error adding image: {str(e)}")
+            return create_response(error=str(e), message="An error occurred while adding the image", status=500)
+
+
 
 
 @app.route('/products', methods=['POST'])
