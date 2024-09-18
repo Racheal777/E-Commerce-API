@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 
 from src import app
+
 load_dotenv()
 
 

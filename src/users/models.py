@@ -1,5 +1,5 @@
 from datetime import datetime
-from email.policy import default
+
 from .. import db, bcrypt
 import uuid
 from sqlalchemy.dialects.postgresql import UUID

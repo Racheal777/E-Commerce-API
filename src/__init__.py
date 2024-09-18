@@ -7,6 +7,8 @@ from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from flask_restx import Api, Resource
+from flask_mail import Mail, Message
+from celery import Celery
 # from flask_restplus import Api, resource
 
 load_dotenv()
@@ -23,6 +25,7 @@ bcrypt = Bcrypt()
 
 app = Flask(__name__)
 
+mail = Mail(app)
 api = Api(app, version='1.0', title='E-Commerce API',
     description='An E-commerce API',
 )
@@ -34,10 +37,19 @@ bcrypt.init_app(app)
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 jwt = JWTManager(app)
 
+
+celery = Celery(app.name, broker='amqp://guest:guest@localhost:5672//')
+celery.conf.update( CELERY_IMPORTS=('src.mailings'))
+
+
+celery.autodiscover_tasks(['src'])
+
 from .users.models import User
 from .products.models import Product
 from .carts.models import Cart
 from .order.models import Order, OrderItem
+
+
 
 from .users.controllers import  *
 from .products.controllers import *

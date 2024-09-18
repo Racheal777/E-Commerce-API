@@ -1,10 +1,10 @@
 import os
-from crypt import methods
 
+from datetime import datetime
 from dotenv import load_dotenv
 from flask import request, jsonify, redirect
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
+from mailings import  send_payment_email, send_order_email
 from .models import Order, OrderItem
 from marshmallow import Schema, fields,  ValidationError
 from .. import app, create_response, User, db
@@ -26,8 +26,8 @@ class OrderSchema(Schema):
     order_date = fields.Date(dump_only=True)
     order_number = fields.Integer(dump_only=True)
     customer_mobile = fields.String(required=True )
-    customer_email = fields.Email(required=True)
-    customer_name = fields.String(required=True, )
+    customer_email = fields.Email()
+    customer_name = fields.String()
     note = fields.String(allow_none=True)
     sub_total = fields.Float(dump_only=True)
     total_amount_due = fields.Float(dump_only=True)
@@ -69,8 +69,8 @@ def create_order():
 
         new_order = Order(
             customer_mobile=data['customer_mobile'],
-            customer_email=data['customer_email'],
-            customer_name=data['customer_name'],
+            customer_email=user.email,
+            customer_name=f"{user.first_name} {user.last_name}",
             note=data.get('note'),
             has_delivery=data['has_delivery'],
             delivery_fee = data.get('delivery_fee'),
@@ -84,34 +84,32 @@ def create_order():
         )
 
         db.session.add(new_order)
-        print(f' product {new_order}')
+
         try:
             db.session.flush()
-            print(f'Flushed to DB, Order ID: {new_order.id}')
+
 
         except Exception as e:
-            print(f'Error during flush: {e}')
+
             db.session.rollback()
             return create_response(error=str(e),message="An error occurred while creating the order", status=500)
 
         sub_total = 0
-        print(f' sub {sub_total}')
+
 
         for item in data['items']:
 
             product_id = item['product_id']
-            print(f"ite  {product_id}")
+
 
             product = Product.query.filter(Product.id == product_id).first()
 
-            print(f' product {product}')
             if not product:
                 print(f' product stock {product.stock_quantity}')
 
                 return create_response(error=f"Product with id {item['product_id']} not found", message="Product not found", status=404)
 
             if product.stock_quantity < item['quantity']:
-                print(f' product stock {product.stock_quantity}')
 
                 return create_response(error=f"Insufficient stock for product {product.name}", message="Insufficient stock", status=400)
 
@@ -130,6 +128,7 @@ def create_order():
         new_order.total_amount_due = sub_total + new_order.delivery_fee
         db.session.commit()
 
+        send_order_email.delay(new_order.id, new_order.customer_email)
         response, status = checkout(new_order.id)
         payment_data = response.json
 
@@ -226,6 +225,8 @@ def callback_payment():
                     order.amount_paid = verification['data']['amount'] / 100
                     db.session.commit()
 
+                    send_payment_email.delay(order.id, order.customer_email)
+
                     return jsonify({'status': 'success', 'message': 'Payment verified and order updated'}), 200
                 else:
                     return jsonify({'status': 'failed', 'message': 'Order not found'}), 404
@@ -248,9 +249,26 @@ def callback_payment():
 
 @app.route('/update-order/<order_number>',  methods = ['PATCH'])
 def update_order(order_number):
-    order = Order.query.filter(Order.order_number == order_number).first()
+    try:
+        order = Order.query.filter(Order.order_number == order_number).first()
 
-    data = request.get_json()
+        data = request.get_json()
+        status = data.get('status')
+
+        order.order_status = status
+        order.is_fulfilled = True
+        order.updated_at = datetime.utcnow
+
+        db.session.commit()
+
+        return create_response(data=order, message='successfully updated the order', status=200)
+
+    except Exception as e:
+        db.session.rollback()
+        return create_response(error=str(e), message="An error occurred", status=500)
+
+
+
 
 
 
