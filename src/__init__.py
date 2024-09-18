@@ -6,10 +6,10 @@ import os
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
-from flask_restx import Api, Resource
-from flask_mail import Mail, Message
+from flask_restx import Api
+from flask_mail import Mail
 from celery import Celery
-# from flask_restplus import Api, resource
+
 
 load_dotenv()
 
@@ -39,7 +39,7 @@ jwt = JWTManager(app)
 
 
 celery = Celery(app.name, broker='amqp://guest:guest@localhost:5672//')
-celery.conf.update( CELERY_IMPORTS=('src.mailings'))
+celery.conf.update(CELERY_IMPORTS='src.mailings')
 
 
 celery.autodiscover_tasks(['src'])
