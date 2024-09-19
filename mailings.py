@@ -6,15 +6,8 @@ from src import mail, app, celery
 
 load_dotenv()
 
-app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
-app.config['MAIL_PORT'] = os.getenv('MAIL_PORT')
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
 
-
-@celery.task
+@celery.task(name='tasks.send_order_email')
 def send_order_email(order_id, customer_email):
     with app.app_context():
         msg = Message("Order Confirmation",
@@ -24,12 +17,25 @@ def send_order_email(order_id, customer_email):
         mail.send(msg)
 
 
-@celery.task
+
+
+@celery.task(name='tasks.send_payment_email')
 def send_payment_email(order_id, customer_email):
     with app.app_context():
         msg = Message('Payment Confirmation', sender="noreply@softlife.com", recipients=[customer_email])
         msg.body = f"We've received your payment for order {order_id}. Thank you!"
         mail.send(msg)
+
+
+
+
+@celery.task(name='tasks.send_signup_email')
+def send_signup_email(otp_code, email):
+    with app.app_context():
+        msg = Message('Email Confirmation', sender="noreply@softlife.com", recipients=[email])
+        msg.body = f"Verify your email by clicking on this link ! {otp_code}"
+        mail.send(msg)
+
 
 
 def send_email(subject, sender, recipient, message):

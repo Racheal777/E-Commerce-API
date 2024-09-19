@@ -1,4 +1,5 @@
 from datetime import datetime
+from email.policy import default
 
 from .. import db, bcrypt
 import uuid
@@ -14,6 +15,7 @@ class User(db.Model):
     last_name = db.Column(db.String(255), nullable=False)
     _password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.Boolean(), default = False, nullable =False)
+    is_verified = db.Column(db.Boolean(), default = False)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

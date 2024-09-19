@@ -39,3 +39,4 @@ class Product(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
         }
+

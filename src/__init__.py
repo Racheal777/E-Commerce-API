@@ -8,7 +8,7 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from flask_restx import Api
 from flask_mail import Mail
-from celery import Celery
+from task import make_celery
 
 
 load_dotenv()
@@ -26,29 +26,37 @@ bcrypt = Bcrypt()
 app = Flask(__name__)
 
 mail = Mail(app)
-api = Api(app, version='1.0', title='E-Commerce API',
-    description='An E-commerce API',
-)
+api = Api(app, version='1.0', title='E-Commerce API',description='An E-commerce API')
 
 app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{user}:{password}@{host}:{port}/{database}"
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
+app.config['MAIL_PORT'] = os.getenv('MAIL_PORT')
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+
+app.config['CELERY_BROKER_URL'] = 'amqp://guest:guest@localhost:5672//'
+app.config['CELERY_RESULT_BACKEND'] = 'rpc://'
+
+
 db.init_app(app)
 migrate.init_app(app, db)
 bcrypt.init_app(app)
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 jwt = JWTManager(app)
 
 
-celery = Celery(app.name, broker='amqp://guest:guest@localhost:5672//')
-celery.conf.update(CELERY_IMPORTS='src.mailings')
 
 
-celery.autodiscover_tasks(['src'])
+celery = make_celery(app)
+
+
 
 from .users.models import User
 from .products.models import Product
 from .carts.models import Cart
 from .order.models import Order, OrderItem
-
 
 
 from .users.controllers import  *

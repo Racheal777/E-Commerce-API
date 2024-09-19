@@ -2,13 +2,13 @@ import os
 
 from datetime import datetime
 from dotenv import load_dotenv
-from flask import request, jsonify, redirect
+from flask import request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from mailings import  send_payment_email, send_order_email
 from .models import Order, OrderItem
 from marshmallow import Schema, fields,  ValidationError
 from .. import app, create_response, User, db
-from ..carts.controllers import get_total
+
 from ..products.models import Product
 import requests
 
@@ -129,6 +129,7 @@ def create_order():
         db.session.commit()
 
         send_order_email.delay(new_order.id, new_order.customer_email)
+
         response, status = checkout(new_order.id)
         payment_data = response.json
 
@@ -173,6 +174,7 @@ def checkout(order_id):
             auth = response['data']
             order.payment_reference = auth['reference']
 
+            db.session.commit()
             return jsonify({
                 "data": auth,
                 "message": "success",
@@ -220,7 +222,7 @@ def callback_payment():
             if verification['data']['status'] == 'success':
                 order = Order.query.filter_by(payment_reference=ref).first()
 
-                if order:
+                if order and order.order_status == 'pending':
                     order.payment_status = 'success'
                     order.amount_paid = verification['data']['amount'] / 100
                     db.session.commit()
@@ -237,12 +239,12 @@ def callback_payment():
 
         except Exception as e:
             db.session.rollback()
-            return jsonify({'status': 'failed', 'message': 'An unexpected error occurred'}), 500
+            return jsonify({'status': str(e), 'message': 'An unexpected error occurred'}), 500
 
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({'status': 'failed', 'message': 'An unexpected error occurred'}), 500
+        return jsonify({'status': str(e), 'message': 'An unexpected error occurred'}), 500
 
 
 

@@ -1,6 +1,6 @@
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
+from marshmallow import Schema, fields, ValidationError
 
 from config import upload_file
 from .models import db, Product
@@ -8,7 +8,12 @@ from flask import request, jsonify, make_response
 from .. import app, bcrypt, User, api
 from ..utils import create_response
 
-
+class ProductSchema(Schema):
+    name = fields.Str(required=True)
+    description = fields.Str(required=True)
+    stock_quantity = fields.Int(required=True)
+    price = fields.Float(required=True)
+    image_url = fields.Str(required=True)
 
 
 @app.route('/image-upload', methods=['POST'])
@@ -50,17 +55,19 @@ def add_product():
                 'status': 401
             }), 401
 
-        data =  request.get_json()
+        schema = ProductSchema()
+
+        try:
+            data = schema.load(request.get_json())
+        except ValidationError as e:
+            return jsonify(e.messages), 400
+
+
         name =data.get('name')
         description = data.get('description')
         price = data.get('price')
         stock_quantity = data.get('stock_quantity')
         image_url = data.get('image_url')
-
-        if not all([name, description, price, stock_quantity, image_url]):
-
-            return create_response(error='Missing required fields', message="Missing required fields",
-                                   status=400)
 
         try:
             price = float(price)
