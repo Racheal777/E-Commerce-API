@@ -2,13 +2,13 @@ from crypt import methods
 from datetime import timedelta
 
 from .models import db, User
-from flask import request, jsonify, make_response
-from .. import app, bcrypt
+from flask import request, jsonify, make_response, Blueprint
+from .. import create_app, bcrypt
 from ..utils import create_response
 from marshmallow import Schema, fields, ValidationError
 from flask_jwt_extended import create_access_token
 
-
+users_bp = Blueprint('users', __name__)
 
 class UserSchema(Schema):
     first_name = fields.Str(required=True)
@@ -26,7 +26,7 @@ class LoginSchema(Schema):
     password = fields.Str(required=True)
 
 
-@app.route('/users/signup', methods=['POST'])
+@users_bp.route('/users/signup', methods=['POST'])
 def signup():
     try:
         schema = UserSchema()
@@ -61,7 +61,7 @@ def signup():
         return create_response(error=str(e), message='error', status=500)
 
 
-@app.route('/users/login', methods=['POST'])
+@users_bp.route('/users/login', methods=['POST'])
 def login():
     try:
         schema = LoginSchema()

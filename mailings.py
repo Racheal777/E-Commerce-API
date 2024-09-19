@@ -3,7 +3,7 @@ from flask_mail import Mail, Message
 from dotenv import load_dotenv
 from flask_mail import  Mail, Message
 from src import mail, app
-from task import celery
+from src.task import celery
 
 load_dotenv()
 

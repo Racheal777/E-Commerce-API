@@ -2,12 +2,12 @@ import os
 
 from dotenv import load_dotenv
 
-from src import app
+from src import create_app
 
 load_dotenv()
 
 
-import mailings
+app = create_app()
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))

@@ -4,8 +4,9 @@ from marshmallow import Schema, fields, ValidationError
 
 from config import upload_file
 from .models import db, Product
-from flask import request, jsonify, make_response
-from .. import app, bcrypt, User, api
+from flask import request, jsonify, make_response, Blueprint
+
+from ..users.models import User
 from ..utils import create_response
 
 class ProductSchema(Schema):
@@ -15,8 +16,10 @@ class ProductSchema(Schema):
     price = fields.Float(required=True)
     image_url = fields.Str(required=True)
 
+products_bp = Blueprint('products', __name__)
 
-@app.route('/image-upload', methods=['POST'])
+
+@products_bp.route('/image-upload', methods=['POST'])
 def upload_image():
         try:
             if 'image' not in request.files:
@@ -41,7 +44,7 @@ def upload_image():
 
 
 
-@app.route('/products', methods=['POST'])
+@products_bp.route('/products', methods=['POST'])
 @jwt_required()
 def add_product():
     try:
@@ -92,7 +95,7 @@ def add_product():
 
 
     except Exception as e:
-        app.logger.error(f"Error adding product: {str(e)}")
+
         return create_response(error=str(e), message="An error occurred while adding product", status=500)
 
 
@@ -101,7 +104,7 @@ def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/products', methods=['GET'])
+@products_bp.route('/products', methods=['GET'])
 def get_products():
     try:
         products = Product.query.order_by(Product.created_at).all()
@@ -110,12 +113,12 @@ def get_products():
 
     except Exception as e:
 
-        app.logger.error(f"Error fetching product: {str(e)}")
+
         return create_response(error=str(e), message="An error occurred while fetching product", status=500)
 
 
 
-@app.route('/products/<string:slug>', methods=['GET'])
+@products_bp.route('/products/<string:slug>', methods=['GET'])
 def get_product(slug):
     try:
 
@@ -128,7 +131,7 @@ def get_product(slug):
 
     except Exception as e:
 
-        app.logger.error(f"Error fetching product: {str(e)}")
+
         return create_response(error=str(e), message="An error occurred while fetching product", status=500)
 
 

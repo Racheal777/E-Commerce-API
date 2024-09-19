@@ -1,12 +1,12 @@
 import uuid
 from uuid import UUID
-from flask import request
+from flask import request, Blueprint
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy.orm import joinedload
 from marshmallow import Schema, fields
 
 from .models import Cart
-from .. import app, db, User
+from .. import  db, User
 from ..products.models import Product
 from ..utils import create_response, sqlalchemy_obj_to_dict
 
@@ -42,8 +42,9 @@ def get_total(price, quantity):
     total_array.append(total_price_per_quantity)
     return round(sum(total_array), 2)
 
+carts_bp = Blueprint('carts', __name__)
 
-@app.route('/carts', methods=['Post'])
+@carts_bp.route('/carts', methods=['Post'])
 @jwt_required()
 def add_cart():
     try:
@@ -82,11 +83,11 @@ def add_cart():
 
     except Exception as e:
 
-        app.logger.error(f"Error adding/updating cart: {str(e)}")
+
         return create_response(error=str(e), message="An error occurred while adding/updating cart", status=500)
 
 
-@app.route('/carts', methods=['GET'])
+@carts_bp.route('/carts', methods=['GET'])
 @jwt_required()
 def get_cart():
     try:
@@ -123,11 +124,10 @@ def get_cart():
 
     except Exception as e:
 
-        app.logger.error(f"Error retrieving cart: {str(e)}")
         return create_response(error=str(e), message="An error occurred while returning cart", status=500)
 
 
-@app.route('/carts/<cart_id>', methods=['PATCH'])
+@carts_bp.route('/carts/<cart_id>', methods=['PATCH'])
 @jwt_required()
 def update_cart(cart_id):
     try:
@@ -155,11 +155,11 @@ def update_cart(cart_id):
         return create_response(data=cart, message='cart record updated successfully', status=200)
 
     except Exception as e:
-        app.logger.error(f"Error adding cart: {str(e)}")
+
         return create_response(error=str(e), message="An error occurred while updating cart", status=500)
 
 
-@app.route('/carts/<string:cart_id>', methods=['DELETE'])
+@carts_bp.route('/carts/<string:cart_id>', methods=['DELETE'])
 @jwt_required()
 def delete_cart(cart_id):
     try:
@@ -182,5 +182,5 @@ def delete_cart(cart_id):
 
     except Exception as e:
 
-        app.logger.error(f"Error adding cart: {str(e)}")
+
         return create_response(error=str(e), message="An error occurred while adding cart", status=500)

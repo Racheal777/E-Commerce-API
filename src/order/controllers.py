@@ -2,18 +2,24 @@ import os
 
 from datetime import datetime
 from dotenv import load_dotenv
-from flask import request, jsonify
+from flask import request, jsonify, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from mailings import  send_payment_email, send_order_email
+from ..task import send_order_email, send_payment_email
 from .models import Order, OrderItem
 from marshmallow import Schema, fields,  ValidationError
-from .. import app, create_response, User, db
+from .. import   db
 
 from ..products.models import Product
 import requests
 
+from ..users.models import User
+from ..utils import create_response
+
 load_dotenv()
 
+
+
+orders_bp = Blueprint('orders', __name__)
 
 class OrderItemSchema(Schema):
     id = fields.UUID(dump_only=True)
@@ -51,7 +57,7 @@ class OrderSchema(Schema):
 orders = OrderSchema()
 
 
-@app.route('/orders', methods=['POST'])
+@orders_bp.route('/orders', methods=['POST'])
 @jwt_required()
 def create_order():
     try:
@@ -197,7 +203,7 @@ def checkout(order_id):
 
 
 
-@app.route('/paystack/callback', methods=['POST'])
+@orders_bp.route('/paystack/callback', methods=['POST'])
 def callback_payment():
     try:
         payload = request.json
@@ -249,7 +255,7 @@ def callback_payment():
 
 
 
-@app.route('/update-order/<order_number>',  methods = ['PATCH'])
+@orders_bp.route('/update-order/<order_number>',  methods = ['PATCH'])
 def update_order(order_number):
     try:
         order = Order.query.filter(Order.order_number == order_number).first()
