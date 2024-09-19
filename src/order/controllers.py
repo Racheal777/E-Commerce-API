@@ -241,56 +241,56 @@ def handle_paystack_redirect():
 
 
 
-
 @orders_bp.route('/paystack/callback', methods=['POST'])
 def callback_payment():
     try:
+        # Log the raw payload to inspect what Paystack is sending
         payload = request.json
+        print("Payload received:", payload)
+
         if not payload or 'event' not in payload:
             return jsonify({'status': 'failed', 'message': 'Invalid payload'}), 400
 
         ref = payload['data']['reference']
 
+        # Log the reference to ensure it's extracted correctly
+        print("Reference:", ref)
 
         url = f'https://api.paystack.co/transaction/verify/{ref}'
         headers = {
             "Authorization": f"Bearer {os.getenv('PAYSTACK_SECRET')}"
-
         }
 
         try:
-            transaction = requests.get(url,  headers=headers)
-
+            transaction = requests.get(url, headers=headers)
             response = transaction.json()
+
+            # Log the response to inspect if the verification succeeded
+            print("Verification response:", response)
+
             verification = response['data']
 
-            if verification['data']['status'] == 'success':
+            if verification['status'] == 'success':
                 order = Order.query.filter_by(payment_reference=ref).first()
 
                 if order and order.order_status == 'pending':
                     order.payment_status = 'success'
-                    order.amount_paid = verification['data']['amount'] / 100
+                    order.amount_paid = verification['amount'] / 100
                     db.session.commit()
-
-                    # send_payment_email.delay(order.id, order.customer_email)
 
                     return jsonify({'status': 'success', 'message': 'Payment verified and order updated'}), 200
                 else:
-                    return jsonify({'status': 'failed', 'message': 'Order not found'}), 404
+                    return jsonify({'status': 'failed', 'message': 'Order not found or already processed'}), 404
             else:
                 return jsonify({'status': 'failed', 'message': 'Payment verification failed'}), 400
 
-
-
         except Exception as e:
             db.session.rollback()
-            return jsonify({'status': str(e), 'message': 'An unexpected error occurred'}), 500
-
+            return jsonify({'status': 'error', 'message': str(e)}), 500
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({'status': str(e), 'message': 'An unexpected error occurred'}), 500
-
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 
