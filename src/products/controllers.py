@@ -4,10 +4,14 @@ from marshmallow import Schema, fields, ValidationError
 
 from config import upload_file
 from .models import db, Product
-from flask import request, jsonify, make_response, Blueprint
+from flask import request, jsonify, make_response, Blueprint, Flask
 
+from .. import api
 from ..users.models import User
 from ..utils import create_response
+from flask_restx import Resource, Api
+
+
 
 class ProductSchema(Schema):
     name = fields.Str(required=True)
@@ -17,6 +21,19 @@ class ProductSchema(Schema):
     image_url = fields.Str(required=True)
 
 products_bp = Blueprint('products', __name__)
+
+
+# app = Flask(__name__)
+# api = Api(app)
+
+@api.route('/hello')
+class HelloWorld(Resource):
+    @api.doc('hellokk')
+    def get(self):
+        return {'hello': 'world'}
+
+
+
 
 
 @products_bp.route('/image-upload', methods=['POST'])
