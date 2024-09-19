@@ -134,7 +134,7 @@ def create_order():
         new_order.total_amount_due = sub_total + new_order.delivery_fee
         db.session.commit()
 
-        send_order_email.delay(new_order.id, new_order.customer_email)
+        # send_order_email.delay(new_order.id, new_order.customer_email)
 
         response, status = checkout(new_order.id)
         payment_data = response.json
@@ -233,7 +233,7 @@ def callback_payment():
                     order.amount_paid = verification['data']['amount'] / 100
                     db.session.commit()
 
-                    send_payment_email.delay(order.id, order.customer_email)
+                    # send_payment_email.delay(order.id, order.customer_email)
 
                     return jsonify({'status': 'success', 'message': 'Payment verified and order updated'}), 200
                 else:
