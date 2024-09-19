@@ -203,6 +203,45 @@ def checkout(order_id):
 
 
 
+@orders_bp.route('/paystack/callback', methods=['GET'])
+def handle_paystack_redirect():
+    ref = request.args.get('reference')
+    if not ref:
+        return jsonify({'status': 'failed', 'message': 'Missing reference'}), 400
+
+    # Verify the payment using the reference
+    url = f'https://api.paystack.co/transaction/verify/{ref}'
+    headers = {
+        "Authorization": f"Bearer {os.getenv('PAYSTACK_SECRET')}"
+    }
+
+    try:
+        transaction = requests.get(url, headers=headers)
+        response = transaction.json()
+        verification = response['data']
+
+        if verification['status'] == 'success':
+            order = Order.query.filter_by(payment_reference=ref).first()
+
+            if order and order.order_status == 'pending':
+                order.payment_status = 'success'
+                order.amount_paid = verification['amount'] / 100
+                db.session.commit()
+
+                # send_payment_email.delay(order.id, order.customer_email)
+
+                return jsonify({'status': 'success', 'message': 'Payment verified and order updated'}), 200
+            else:
+                return jsonify({'status': 'failed', 'message': 'Order not found'}), 404
+        else:
+            return jsonify({'status': 'failed', 'message': 'Payment verification failed'}), 400
+
+    except Exception as e:
+        return jsonify({'status': str(e), 'message': 'An unexpected error occurred'}), 500
+
+
+
+
 @orders_bp.route('/paystack/callback', methods=['POST'])
 def callback_payment():
     try:
