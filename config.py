@@ -5,13 +5,13 @@ import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
 import os
 
-from flask_mail import Message
 
-import app
+
+
 
 from dotenv import  load_dotenv
 
-from src import mail
+
 
 load_dotenv()
 
@@ -28,4 +28,3 @@ def upload_file(file):
     return upload_result.get('secure_url')
 
 
-# Looking to send emails in production? Check out our Email API/SMTP product!

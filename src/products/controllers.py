@@ -29,11 +29,34 @@ products_bp = Blueprint('products', __name__)
 @api.route('/hello')
 class HelloWorld(Resource):
     @api.doc('hellokk')
-    def get(self):
+    def post(self):
         return {'hello': 'world'}
 
 
+@api.route('/upload_image')
+class Products(Resource):
+    @api.doc('upload_image')
 
+    def post(self):
+
+        try:
+            if 'image' not in request.files:
+                return jsonify({'message': 'No image file provided'}), 400
+
+            file = request.files['image']
+            if file.filename == '':
+                return jsonify({'message': 'No selected file'}), 400
+
+            if file and allowed_file(file.filename):
+                image_url = upload_file(file)
+                return create_response(data=image_url, message="Success", status=201)
+
+            else:
+                return create_response(error="Invalid file type", message="Invalid file type", status=400)
+
+        except Exception as e:
+
+            return create_response(error=str(e), message="An error occurred while adding the image", status=500)
 
 
 @products_bp.route('/image-upload', methods=['POST'])
@@ -55,7 +78,7 @@ def upload_image():
 
         except Exception as e:
 
-            app.logger.error(f"Error adding image: {str(e)}")
+
             return create_response(error=str(e), message="An error occurred while adding the image", status=500)
 
 
