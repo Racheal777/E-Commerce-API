@@ -1,8 +1,9 @@
-import os
-
+from celery import Celery
+from flask_mail import Mail, Message
 from dotenv import load_dotenv
 from flask_mail import  Mail, Message
-from src import mail, app, celery
+from src import mail, app
+from task import celery
 
 load_dotenv()
 

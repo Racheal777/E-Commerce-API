@@ -9,6 +9,7 @@ from flask_jwt_extended import JWTManager
 from flask_restx import Api
 from flask_mail import Mail
 from task import make_celery
+import mailings
 
 
 load_dotenv()
@@ -48,16 +49,19 @@ jwt = JWTManager(app)
 
 
 
-
+import mailings
 celery = make_celery(app)
+celery.conf.update(app.config)
 
+celery.autodiscover_tasks(['mailings'])
 
+celery.conf.broker_connection_retry_on_startup = True
 
 from .users.models import User
 from .products.models import Product
 from .carts.models import Cart
 from .order.models import Order, OrderItem
-
+import mailings
 
 from .users.controllers import  *
 from .products.controllers import *
