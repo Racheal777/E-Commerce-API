@@ -134,7 +134,7 @@ def create_order():
         new_order.total_amount_due = sub_total + new_order.delivery_fee
         db.session.commit()
 
-        # send_order_email.delay(new_order.id, new_order.customer_email)
+        send_order_email.delay(new_order.id, new_order.customer_email)
 
         response, status = checkout(new_order.id)
         payment_data = response.json
@@ -169,8 +169,6 @@ def checkout(order_id):
             "amount": int(round(order.total_amount_due) * 100),
             "currency": "GHS",
             "email": order.customer_email,
-
-
         }
 
         try:
@@ -209,7 +207,6 @@ def handle_paystack_redirect():
     if not ref:
         return jsonify({'status': 'failed', 'message': 'Missing reference'}), 400
 
-    # Verify the payment using the reference
     url = f'https://api.paystack.co/transaction/verify/{ref}'
     headers = {
         "Authorization": f"Bearer {os.getenv('PAYSTACK_SECRET')}"
@@ -228,7 +225,7 @@ def handle_paystack_redirect():
                 order.amount_paid = verification['amount'] / 100
                 db.session.commit()
 
-                # send_payment_email.delay(order.id, order.customer_email)
+                send_payment_email.delay(order.id, order.customer_email)
 
                 return jsonify({'status': 'success', 'message': 'Payment verified and order updated'}), 200
             else:
@@ -244,17 +241,12 @@ def handle_paystack_redirect():
 @orders_bp.route('/paystack/callback', methods=['POST'])
 def callback_payment():
     try:
-        # Log the raw payload to inspect what Paystack is sending
         payload = request.json
-        print("Payload received:", payload)
 
         if not payload or 'event' not in payload:
             return jsonify({'status': 'failed', 'message': 'Invalid payload'}), 400
 
         ref = payload['data']['reference']
-
-        # Log the reference to ensure it's extracted correctly
-        print("Reference:", ref)
 
         url = f'https://api.paystack.co/transaction/verify/{ref}'
         headers = {
@@ -264,9 +256,6 @@ def callback_payment():
         try:
             transaction = requests.get(url, headers=headers)
             response = transaction.json()
-
-            # Log the response to inspect if the verification succeeded
-            print("Verification response:", response)
 
             verification = response['data']
 

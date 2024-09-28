@@ -1,4 +1,4 @@
-# src/task.py
+
 from celery import Celery
 from flask_mail import Message
 from flask import current_app

@@ -147,9 +147,13 @@ def allowed_file(filename):
 @products_bp.route('/products', methods=['GET'])
 def get_products():
     try:
-        products = Product.query.order_by(Product.created_at).all()
 
-        return create_response(data=products, message="Success", status=200)
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+
+        products = Product.query.order_by(Product.created_at).paginate(page=page, per_page=per_page)
+
+        return create_response(data=products.items, message="Success", status=200)
 
     except Exception as e:
 

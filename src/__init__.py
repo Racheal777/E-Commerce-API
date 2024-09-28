@@ -8,7 +8,7 @@ from flask_restx import Api
 from flask_mail import Mail
 from dotenv import load_dotenv
 import os
-from .task import init_celery
+
 
 load_dotenv()
 
@@ -43,7 +43,10 @@ def create_app():
     mail.init_app(app)
     api.init_app(app)
 
+
     # Initialize Celery
+    # init_celery(app)
+    from .task import init_celery
     init_celery(app)
 
     # Import and register blueprints
