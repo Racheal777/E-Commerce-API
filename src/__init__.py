@@ -8,6 +8,7 @@ from flask_restx import Api
 from flask_mail import Mail
 from dotenv import load_dotenv
 import os
+from flask_cors import CORS
 
 
 load_dotenv()
@@ -22,7 +23,7 @@ api = Api(version='1.0', title='E-Commerce API', description='An E-commerce API'
 def create_app():
     app = Flask(__name__)
 
-
+    CORS(app)
     app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{os.getenv('USERNAME')}:{os.getenv('PASSWORD')}@{os.getenv('HOSTNAME')}:{os.getenv('DB_PORT')}/{os.getenv('DATABASE')}"
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
     app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
