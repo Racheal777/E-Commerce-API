@@ -68,3 +68,7 @@ asgiref~=3.8.1
 sqlparse~=0.5.0
 importlib_resources~=6.4.5
 logtail~=1.0.1
+aniso8601~=9.0.1
+referencing~=0.35.1
+jsonschema~=4.23.0
+jsonschema-specifications~=2023.12.1
